@@ -580,7 +580,7 @@
         }) + ' ET';
         const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
 
-        let msg = `🏠 New Roof Inspection Request\n📋 PO#: ${poStr}\n${sep}\n👤 Name: ${lead.name}\n📞 Phone: ${lead.phone.replace(/\D/g, '')}\n📧 Email: ${lead.email || 'N/A'}\n📍 Address: ${fullAddress}\n`;
+        let msg = `🏠 New Roof Inspection Request\n📋 PO#: ${poStr}\n${sep}\n👷 Worker: ${lead.worker || 'N/A'}\n👤 Name: ${lead.name}\n📞 Phone: ${lead.phone.replace(/\\D/g, '')}\n📧 Email: ${lead.email || 'N/A'}\n📍 Address: ${fullAddress}\n`;
         if (lead.roofType) msg += `🏗️ Roof Type: ${lead.roofType}\n`;
         if (lead.urgency) msg += `⏰ Urgency: ${lead.urgency}\n`;
         if (lead.source) msg += `📎 Source: ${lead.source}\n`;
@@ -624,9 +624,9 @@
       function exportCSV() {
         const leads = getLeads();
         if (leads.length === 0) { showToast('No leads to export'); return; }
-        const headers = ['PO#','Name','Phone','Email','Address','City','State','ZIP','RoofType','Urgency','Source','Status','SqFt','QuoteTotal','Discount','Notes','CreatedAt'];
+        const headers = ['PO#','Worker','Name','Phone','Email','Address','City','State','ZIP','RoofType','Urgency','Source','Status','SqFt','QuoteTotal','Discount','Notes','CreatedAt'];
         const rows = leads.map(l => [
-          l.poNumber || '', l.name, l.phone, l.email, l.address, l.city, l.state, l.zip,
+          l.poNumber || '', (l.worker || ''), l.name, l.phone, l.email, l.address, l.city, l.state, l.zip,
           l.roofType, l.urgency, l.source, l.status,
           (l.sqft || ''), ((l.quote && l.quote.total) || ''), (l.quote && l.quote.discount ? Math.round(l.quote.discount * 100) / 100 : ''),
           (l.notes || '').replace(/"/g, '""'), l.createdAt
@@ -742,6 +742,7 @@
           _schemaVersion: CONFIG.SCHEMA_VERSION,
           id: generateId(),
           poNumber: getNextPoNumber(),
+          worker: f.worker.value.trim(),
           name: f.name.value.trim(),
           phone: normalizePhone(rawPhone),
           email: f.email.value.trim(),
@@ -985,6 +986,7 @@
           <div class="po-banner">PO# ${poStr}</div>
           <div class="card">
             <div class="card-title">📋 Customer Details</div>
+            <div class="detail-row"><span class="detail-label">Worker</span><span class="detail-value">${esc(lead.worker || '—')}</span></div>
             <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${esc(lead.name)}</span></div>
             <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${esc(lead.phone)}" style="color:#ef4444;font-weight:700">${esc(lead.phone)}</a></span></div>
             <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(lead.email)}" style="color:#ef4444;font-weight:700">${esc(lead.email)}</a></span></div>
@@ -1061,6 +1063,7 @@
               <form id="lead-form" onsubmit="onSaveLead(event)">
                 <div class="card">
                   <div class="card-title">📝 Lead Capture</div>
+                  <div class="form-group"><label for="lead-worker">Worker Name</label><input type="text" id="lead-worker" name="worker" placeholder="Your name"></div>
                   <div class="form-group"><label for="lead-name">Full Name</label><input type="text" id="lead-name" name="name" placeholder="John Smith" required></div>
                   <div class="form-row">
                     <div class="form-group"><label for="lead-phone">Phone</label><input type="tel" id="lead-phone" name="phone" placeholder="(954) 555-1234" required></div>
