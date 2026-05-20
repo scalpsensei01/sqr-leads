@@ -86,6 +86,49 @@
         scrollbar-width: none;
       }
       .nav-bar::-webkit-scrollbar { display: none; }
+      .qr-btn { flex: 0 0 auto; min-width: 60px; }
+      .qr-btn .icon { font-size: 1.2rem; }
+      .qr-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 500;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        padding: 2rem;
+      }
+      .qr-overlay.active { display: flex; }
+      .qr-box {
+        background: #fff;
+        border-radius: 1rem;
+        padding: 2rem;
+        max-width: 90vw;
+        max-height: 80vh;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      }
+      .qr-box img { max-width: 100%; max-height: 60vh; display: block; margin: 0 auto; }
+      .qr-box p { margin-top: 1rem; color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+      .qr-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(255,255,255,.15);
+        border: 1px solid rgba(255,255,255,.25);
+        color: #fff;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        font-size: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
       .nav-btn {
         flex: 1;
         min-width: 110px;
@@ -1058,7 +1101,20 @@
               <span>Leads</span>
               <span class="badge" id="badge-count">0</span>
             </button>
+            <button class="nav-btn qr-btn" onclick="toggleQR()" title="Show QR Code">
+              <span class="icon">🔲</span>
+              <span>QR</span>
+            </button>
           </nav>
+
+          <!-- QR Overlay -->
+          <div id="qr-overlay" class="qr-overlay" onclick="if(event.target===this)toggleQR()">
+            <button class="qr-close" onclick="toggleQR()">×</button>
+            <div class="qr-box">
+              <img id="qr-img" src="" alt="Scan to visit website">
+              <p>Scan to visit sqr-leads.vercel.app</p>
+            </div>
+          </div>
 
           <main id="main-content">
             <!-- PAGE: CAPTURE -->
