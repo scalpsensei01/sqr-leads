@@ -588,9 +588,13 @@
 
         if (includeQuote && lead.quote) {
           const q = lead.quote;
-          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft`;
-          if (q.discount) msg += `\nDiscount: ${Math.round(q.discount * 100)}% off`;
-          msg += `\nTotal: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+          const originalTotal = roundCurrency(q.sqft * q.rate);
+          const discountAmount = roundCurrency(originalTotal - q.total);
+          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft\nOriginal Price: $${Number(originalTotal).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+          if (q.discount) {
+            msg += `\nDiscount: ${Math.round(q.discount * 100)}% off (-$${Number(discountAmount).toLocaleString('en-US', {minimumFractionDigits:2})})`;
+          }
+          msg += `\n━━━━━━━━━━━━━━━━━━━━━\nFinal Price: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
         }
         return msg;
       }
@@ -793,7 +797,13 @@
         const lead = getLeads().find(l => l.id === currentLeadId);
         if (!lead || !lead.quote) { showToast('No quote'); return; }
         const q = lead.quote;
-        const text = `Roof Renewal Estimate for ${lead.name}\n${lead.address}, ${lead.city} ${lead.state}\nRoof size: ${lead.sqft} sq ft\nRate: ${formatCurrency(q.rate)}/sq ft\nTotal: ${formatCurrency(q.total)}`;
+        const originalTotal = roundCurrency(q.sqft * q.rate);
+        const discountAmount = roundCurrency(originalTotal - q.total);
+        let text = `Roof Renewal Estimate for ${lead.name}\n${lead.address}, ${lead.city} ${lead.state}\nRoof size: ${lead.sqft} sq ft\nRate: ${formatCurrency(q.rate)}/sq ft\nOriginal Price: ${formatCurrency(originalTotal)}`;
+        if (q.discount) {
+          text += `\nDiscount: ${Math.round(q.discount * 100)}% off (-${formatCurrency(discountAmount)})`;
+        }
+        text += `\nFinal Price: ${formatCurrency(q.total)}`;
         copyToClipboard(text);
       }
 
@@ -881,27 +891,29 @@
         }
 
         let discountHtml = '';
+        let originalHtml = '';
+        const originalCost = roundCurrency(roofSqft * CONFIG.RATE_PER_SQFT);
         if (currentDiscount > 0) {
-          discountHtml = `<div class="label" style="margin-top:.5rem;">Discount: ${Math.round(currentDiscount * 100)}% off (-${formatCurrency(discountAmount)})</div>`;
+          discountHtml = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eDiscount: ${Math.round(currentDiscount * 100)}% off (-${formatCurrency(discountAmount)})\u003c/div\u003e`;
+          originalHtml = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eOriginal Price: ${formatCurrency(originalCost)}\u003c/div\u003e`;
         }
 
         const resultEl = document.getElementById('calc-result');
         resultEl.style.display = 'block';
         resultEl.innerHTML = `
-          <div class="quote-result">
-            <div class="label">Estimated Roof Size</div>
-            <div class="big-number" style="font-size:2.5rem;">${roofSqft.toLocaleString()} sq ft</div>
-            <div class="label" style="margin-top:1rem;">Total Estimate</div>
-            <div class="big-number">${formatCurrency(totalCost)}</div>
+          \u003cdiv class="quote-result"\u003e
+            \u003cdiv class="label"\u003eEstimated Roof Size\u003c/div\u003e
+            \u003cdiv class="big-number" style="font-size:2.5rem;"\u003e${roofSqft.toLocaleString()} sq ft\u003c/div\u003e
+            \u003cdiv style="margin-top:.5rem;font-size:.9rem;color:var(--text-light);"\u003eRate: ${formatCurrency(CONFIG.RATE_PER_SQFT)}/sq ft\u003c/div\u003e
+            ${originalHtml}
             ${discountHtml}
-            <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
-              at ${formatCurrency(CONFIG.RATE_PER_SQFT)}/sq ft
-            </div>
-          </div>
-          <div class="action-btns">
-            <button class="btn btn-primary" onclick="saveCalculatedQuote(${roofSqft}, ${totalCost}, ${currentDiscount})">💾 Save to Lead & Send Telegram</button>
-            <button class="btn btn-secondary" onclick="document.getElementById('calc-result').style.display='none';">↩️ Recalculate</button>
-          </div>
+            \u003cdiv class="label" style="margin-top:1rem;"\u003eFinal Price\u003c/div\u003e
+            \u003cdiv class="big-number"\u003e${formatCurrency(totalCost)}\u003c/div\u003e
+          \u003c/div\u003e
+          \u003cdiv class="action-btns"\u003e
+            \u003cbutton class="btn btn-primary" onclick="saveCalculatedQuote(${roofSqft}, ${totalCost}, ${currentDiscount})"\u003e💾 Save to Lead & Send Telegram\u003c/button\u003e
+            \u003cbutton class="btn btn-secondary" onclick="document.getElementById('calc-result').style.display='none';"\u003e↩️ Recalculate\u003c/button\u003e
+          \u003c/div\u003e
         `;
       }
 
@@ -993,21 +1005,24 @@
         const quoteEl = document.getElementById('calc-result');
         if (lead.quote && lead.quote.total) {
           const q = lead.quote;
+          const originalTotal = roundCurrency(q.sqft * q.rate);
+          const discountAmount = roundCurrency(originalTotal - q.total);
           let discountLine = '';
+          let originalLine = '';
           if (q.discount) {
-            discountLine = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eDiscount: ${Math.round(q.discount * 100)}% off\u003c/div\u003e`;
+            discountLine = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eDiscount: ${Math.round(q.discount * 100)}% off (-${formatCurrency(discountAmount)})\u003c/div\u003e`;
+            originalLine = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eOriginal Price: ${formatCurrency(originalTotal)}\u003c/div\u003e`;
           }
           quoteEl.style.display = 'block';
           quoteEl.innerHTML = `
             \u003cdiv class="quote-result"\u003e
               \u003cdiv class="label"\u003eRoof Size\u003c/div\u003e
               \u003cdiv class="big-number" style="font-size:2rem;"\u003e${esc(String(lead.sqft))} sq ft\u003c/div\u003e
-              \u003cdiv class="label" style="margin-top:1rem;"\u003eRenewal Estimate\u003c/div\u003e
-              \u003cdiv class="big-number"\u003e${formatCurrency(q.total)}\u003c/div\u003e
+              \u003cdiv style="margin-top:.5rem;font-size:.9rem;color:var(--text-light);"\u003eRate: ${formatCurrency(q.rate)}/sq ft\u003c/div\u003e
+              ${originalLine}
               ${discountLine}
-              \u003cdiv style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);"\u003e
-                at ${formatCurrency(q.rate)}/sq ft
-              \u003c/div\u003e
+              \u003cdiv class="label" style="margin-top:1rem;"\u003eFinal Price\u003c/div\u003e
+              \u003cdiv class="big-number"\u003e${formatCurrency(q.total)}\u003c/div\u003e
             \u003c/div\u003e
             \u003cdiv class="action-btns"\u003e
               \u003cbutton class="btn btn-secondary" onclick="onCopyQuote()"\u003e📋 Copy Quote\u003c/button\u003e
