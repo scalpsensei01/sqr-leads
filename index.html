@@ -283,6 +283,29 @@
       }
       .pitch-btn:active { transform: scale(.97); }
 
+      .discount-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        padding: .65rem .5rem;
+        border: 2px solid var(--border);
+        border-radius: .75rem;
+        background: var(--card);
+        color: var(--text-light);
+        font-size: .85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s ease;
+        flex: 1;
+        min-width: 80px;
+      }
+      .discount-btn.active {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: #e0f2fe;
+      }
+
       .export-bar {
         display: flex;
         gap: .5rem;
@@ -458,7 +481,9 @@
 
         if (includeQuote && lead.quote) {
           const q = lead.quote;
-          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft\nTotal: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft`;
+          if (q.discount) msg += `\nDiscount: ${Math.round(q.discount * 100)}% off`;
+          msg += `\nTotal: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
         }
         return msg;
       }
@@ -488,11 +513,11 @@
       function exportCSV() {
         const leads = getLeads();
         if (leads.length === 0) { showToast('No leads to export'); return; }
-        const headers = ['PO#','Name','Phone','Email','Address','City','State','ZIP','RoofType','Urgency','Source','Status','SqFt','QuoteTotal','Notes','CreatedAt'];
+        const headers = ['PO#','Name','Phone','Email','Address','City','State','ZIP','RoofType','Urgency','Source','Status','SqFt','QuoteTotal','Discount','Notes','CreatedAt'];
         const rows = leads.map(l => [
           l.poNumber || '', l.name, l.phone, l.email, l.address, l.city, l.state, l.zip,
           l.roofType, l.urgency, l.source, l.status,
-          (l.sqft || ''), ((l.quote && l.quote.total) || ''),
+          (l.sqft || ''), ((l.quote && l.quote.total) || ''), (l.quote && l.quote.discount ? Math.round(l.quote.discount * 100) / 100 : ''),
           (l.notes || '').replace(/"/g, '""'), l.createdAt
         ].map(v => `"${String(v).replace(/"/g, '""')}"`));
         const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -659,6 +684,7 @@
           rate: CONFIG.RATE_PER_SQFT,
           sqft: sqft,
           total: roundCurrency(sqft * CONFIG.RATE_PER_SQFT),
+          discount: 0,
           computedAt: new Date().toISOString(),
         };
         saveLeads(leads);
@@ -694,16 +720,20 @@
       function setCalcMode(mode) {
         const elDims = document.getElementById('calc-dims');
         const elLiving = document.getElementById('calc-living');
+        const elRoofSqt = document.getElementById('calc-roofsqt');
         const elCommon = document.getElementById('calc-common');
         const elResult = document.getElementById('calc-result');
         const elModeDims = document.getElementById('mode-dims');
         const elModeLiving = document.getElementById('mode-living');
+        const elModeRoofSqt = document.getElementById('mode-roofsqt');
         if (elDims) elDims.style.display = mode === 'dims' ? 'block' : 'none';
         if (elLiving) elLiving.style.display = mode === 'living' ? 'block' : 'none';
-        if (elCommon) elCommon.style.display = 'block';
+        if (elRoofSqt) elRoofSqt.style.display = mode === 'roofsqt' ? 'block' : 'none';
+        if (elCommon) elCommon.style.display = mode === 'roofsqt' ? 'none' : 'block';
         if (elResult) elResult.style.display = 'none';
         if (elModeDims) elModeDims.classList.toggle('active', mode === 'dims');
         if (elModeLiving) elModeLiving.classList.toggle('active', mode === 'living');
+        if (elModeRoofSqt) elModeRoofSqt.classList.toggle('active', mode === 'roofsqt');
       }
 
       function selectPitch(btn) {
@@ -712,10 +742,21 @@
         currentPitch = parseFloat(btn.dataset.pitch);
       }
 
+      let currentDiscount = 0;
+
+      function selectDiscount(discount, btn) {
+        currentDiscount = discount;
+        document.querySelectorAll('.discount-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+      }
+
       function calculateRoof() {
-        let footprint = 0;
+        let roofSqft = 0;
         const elDims = document.getElementById('calc-dims');
-        const mode = elDims && elDims.style.display !== 'none' ? 'dims' : 'living';
+        const elRoofSqt = document.getElementById('calc-roofsqt');
+        let mode = 'living';
+        if (elDims && elDims.style.display !== 'none') mode = 'dims';
+        else if (elRoofSqt && elRoofSqt.style.display !== 'none') mode = 'roofsqt';
 
         if (mode === 'dims') {
           const length = parseFloat(document.getElementById('calc-length').value);
@@ -724,23 +765,41 @@
             showToast('Enter house length and width');
             return;
           }
-          footprint = length * width;
-        } else {
+          const footprint = length * width;
+          const garageSqft = parseFloat(document.getElementById('calc-garage').value);
+          const overhangFactor = parseFloat(document.getElementById('calc-overhang').value);
+          roofSqft = Math.round((footprint + garageSqft) * currentPitch * overhangFactor);
+        } else if (mode === 'living') {
           const livingSqft = parseFloat(document.getElementById('calc-living-sqft').value);
           const stories = parseInt(document.getElementById('calc-stories').value);
           if (!livingSqft || livingSqft <= 0) {
             showToast('Enter living area square footage');
             return;
           }
-          footprint = livingSqft / stories;
+          const footprint = livingSqft / stories;
+          const garageSqft = parseFloat(document.getElementById('calc-garage').value);
+          const overhangFactor = parseFloat(document.getElementById('calc-overhang').value);
+          roofSqft = Math.round((footprint + garageSqft) * currentPitch * overhangFactor);
+        } else if (mode === 'roofsqt') {
+          roofSqft = parseFloat(document.getElementById('calc-roof-sqft').value);
+          if (!roofSqft || roofSqft <= 0) {
+            showToast('Enter roof square footage');
+            return;
+          }
         }
 
-        const garageSqft = parseFloat(document.getElementById('calc-garage').value);
-        const overhangFactor = parseFloat(document.getElementById('calc-overhang').value);
+        let totalCost = roundCurrency(roofSqft * CONFIG.RATE_PER_SQFT);
+        let discountAmount = 0;
+        if (currentDiscount > 0) {
+          discountAmount = roundCurrency(totalCost * currentDiscount);
+          totalCost = roundCurrency(totalCost - discountAmount);
+        }
 
-        const roofSqft = Math.round((footprint + garageSqft) * currentPitch * overhangFactor);
-        const totalCost = roundCurrency(roofSqft * CONFIG.RATE_PER_SQFT);
-        
+        let discountHtml = '';
+        if (currentDiscount > 0) {
+          discountHtml = `<div class="label" style="margin-top:.5rem;">Discount: ${Math.round(currentDiscount * 100)}% off (-${formatCurrency(discountAmount)})</div>`;
+        }
+
         const resultEl = document.getElementById('calc-result');
         resultEl.style.display = 'block';
         resultEl.innerHTML = `
@@ -749,18 +808,19 @@
             <div class="big-number" style="font-size:2.5rem;">${roofSqft.toLocaleString()} sq ft</div>
             <div class="label" style="margin-top:1rem;">Total Estimate</div>
             <div class="big-number">${formatCurrency(totalCost)}</div>
+            ${discountHtml}
             <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
               at ${formatCurrency(CONFIG.RATE_PER_SQFT)}/sq ft
             </div>
           </div>
           <div class="action-btns">
-            <button class="btn btn-primary" onclick="saveCalculatedQuote(${roofSqft}, ${totalCost})">💾 Save to Lead & Send Telegram</button>
+            <button class="btn btn-primary" onclick="saveCalculatedQuote(${roofSqft}, ${totalCost}, ${currentDiscount})">💾 Save to Lead & Send Telegram</button>
             <button class="btn btn-secondary" onclick="document.getElementById('calc-result').style.display='none';">↩️ Recalculate</button>
           </div>
         `;
       }
 
-      function saveCalculatedQuote(sqft, quoteTotal) {
+      function saveCalculatedQuote(sqft, quoteTotal, discount) {
         const leads = getLeads();
         const idx = leads.findIndex(l => l.id === currentLeadId);
         if (idx === -1) return;
@@ -769,6 +829,7 @@
           rate: CONFIG.RATE_PER_SQFT,
           sqft: sqft,
           total: quoteTotal,
+          discount: discount || 0,
           computedAt: new Date().toISOString(),
         };
         saveLeads(leads);
@@ -785,11 +846,15 @@
         const leads = getLeads();
         const idx = leads.findIndex(l => l.id === currentLeadId);
         if (idx === -1) return;
+        const oldQ = leads[idx].quote || {};
         leads[idx].sqft = sqft;
+        let total = roundCurrency(sqft * CONFIG.RATE_PER_SQFT);
+        // Preserve manual override discount logic — manual no discount, but clear if any
         leads[idx].quote = {
           rate: CONFIG.RATE_PER_SQFT,
           sqft: sqft,
-          total: roundCurrency(sqft * CONFIG.RATE_PER_SQFT),
+          total: total,
+          discount: 0,
           computedAt: new Date().toISOString(),
         };
         saveLeads(leads);
@@ -871,12 +936,17 @@
         const quoteEl = document.getElementById('quote-display');
         if (lead.quote && lead.quote.total) {
           const q = lead.quote;
+          let discountLine = '';
+          if (q.discount) {
+            discountLine = `<div class="label" style="margin-top:.5rem;">Discount: ${Math.round(q.discount * 100)}% off</div>`;
+          }
           quoteEl.innerHTML = `
             <div class="quote-result">
               <div class="label">Roof Size</div>
               <div class="big-number" style="font-size:2rem;">${esc(String(lead.sqft))} sq ft</div>
               <div class="label" style="margin-top:1rem;">Renewal Estimate</div>
               <div class="big-number">${formatCurrency(q.total)}</div>
+              ${discountLine}
               <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
                 at ${formatCurrency(q.rate)}/sq ft
               </div>
@@ -1006,9 +1076,10 @@
                 <!-- Mode toggle -->
                 <div class="form-group">
                   <label>How do you know your house size?</label>
-                  <div class="action-btns" style="margin-bottom:0;">
-                    <button type="button" class="btn btn-secondary active" id="mode-dims" onclick="setCalcMode('dims')">📏 I know length & width</button>
-                    <button type="button" class="btn btn-secondary" id="mode-living" onclick="setCalcMode('living')">🏠 I know living area</button>
+                  <div class="action-btns" style="margin-bottom:0; flex-wrap:nowrap;">
+                    <button type="button" class="btn btn-secondary active" id="mode-dims" onclick="setCalcMode('dims')">📏 Length & Width</button>
+                    <button type="button" class="btn btn-secondary" id="mode-living" onclick="setCalcMode('living')">🏠 Living Area</button>
+                    <button type="button" class="btn btn-secondary" id="mode-roofsqt" onclick="setCalcMode('roofsqt')">📐 Roof Sq Ft</button>
                   </div>
                 </div>
 
@@ -1031,6 +1102,13 @@
                         <option value="3">3 stories</option>
                       </select>
                     </div>
+                  </div>
+                </div>
+
+                <!-- Roof sq ft mode (from fixr.com) -->
+                <div id="calc-roofsqt" style="display:none;">
+                  <div class="form-row">
+                    <div class="form-group"><label for="calc-roof-sqft">Roof Sq Ft (from fixr.com)</label><input type="number" id="calc-roof-sqft" placeholder="e.g. 2400" min="100"></div>
                   </div>
                 </div>
 
@@ -1079,6 +1157,16 @@
                   <button type="button" class="btn btn-primary btn-lg" onclick="calculateRoof()">🧮 Calculate Roof & Quote</button>
                 </div>
 
+                <!-- Discount -->
+                <div class="form-group" style="margin-top:1rem;">
+                  <label>Discount</label>
+                  <div class="action-btns" style="margin-bottom:0; flex-wrap:nowrap;">
+                    <button type="button" class="discount-btn active" id="disc-none" onclick="selectDiscount(0, this)">No discount</button>
+                    <button type="button" class="discount-btn" id="disc-15" onclick="selectDiscount(0.15, this)">15% off</button>
+                    <button type="button" class="discount-btn" id="disc-20" onclick="selectDiscount(0.20, this)">20% off</button>
+                  </div>
+                </div>
+
                 <!-- Results -->
                 <div id="calc-result" style="display:none; margin-top:1rem;"></div>
 
@@ -1110,6 +1198,7 @@
         `;
         document.getElementById('root').innerHTML = html;
         setCalcMode('dims');
+        selectDiscount(0, document.getElementById('disc-none'));
         updateBadge();
 
         const form = document.getElementById('lead-form');
