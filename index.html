@@ -779,28 +779,6 @@
         sendLeadToTelegram(currentLeadId);
       }
 
-      function onSaveSqft(e) {
-        e.preventDefault();
-        const sqft = parseFloat(document.getElementById('detail-sqft').value);
-        if (!sqft || sqft <= 0) { showToast('Enter valid square footage'); return; }
-        const leads = getLeads();
-        const idx = leads.findIndex(l => l.id === currentLeadId);
-        if (idx === -1) return;
-        leads[idx].sqft = sqft;
-        leads[idx].quote = {
-          rate: CONFIG.RATE_PER_SQFT,
-          sqft: sqft,
-          total: roundCurrency(sqft * CONFIG.RATE_PER_SQFT),
-          discount: 0,
-          computedAt: new Date().toISOString(),
-        };
-        saveLeads(leads);
-        showToast('Quote saved');
-        // Auto-send to Telegram after quote is saved
-        sendLeadToTelegram(currentLeadId);
-        renderDetail(currentLeadId);
-      }
-
       function onUpdateStatus(status) {
         const leads = getLeads();
         const idx = leads.findIndex(l => l.id === currentLeadId);
@@ -941,32 +919,7 @@
         };
         saveLeads(leads);
         showToast('Quote saved');
-        document.getElementById('detail-sqft').value = sqft;
         // Auto-send to Telegram after quote is saved
-        sendLeadToTelegram(currentLeadId);
-        renderDetail(currentLeadId);
-      }
-
-      function onManualSqft() {
-        const sqft = parseFloat(document.getElementById('detail-sqft').value);
-        if (!sqft || sqft <= 0) { showToast('Enter valid square footage'); return; }
-        const leads = getLeads();
-        const idx = leads.findIndex(l => l.id === currentLeadId);
-        if (idx === -1) return;
-        const oldQ = leads[idx].quote || {};
-        leads[idx].sqft = sqft;
-        let total = roundCurrency(sqft * CONFIG.RATE_PER_SQFT);
-        // Preserve manual override discount logic — manual no discount, but clear if any
-        leads[idx].quote = {
-          rate: CONFIG.RATE_PER_SQFT,
-          sqft: sqft,
-          total: total,
-          discount: 0,
-          computedAt: new Date().toISOString(),
-        };
-        saveLeads(leads);
-        showToast('Quote saved');
-        // Auto-send to Telegram after manual save
         sendLeadToTelegram(currentLeadId);
         renderDetail(currentLeadId);
       }
@@ -1036,9 +989,6 @@
             </div>
           </div>
         `;
-
-        const sqftInput = document.getElementById('detail-sqft');
-        if (sqftInput) sqftInput.value = lead.sqft || '';
 
         const quoteEl = document.getElementById('quote-display');
         if (lead.quote && lead.quote.total) {
@@ -1276,15 +1226,6 @@
 
                 <!-- Results -->
                 <div id="calc-result" style="display:none; margin-top:1rem;"></div>
-
-                <!-- Manual override -->
-                <div class="form-group" style="margin-top:1.5rem; padding-top:1rem; border-top:2px dashed var(--border);">
-                  <label for="detail-sqft">Or enter roof sq ft manually</label>
-                  <div class="form-row">
-                    <input type="number" id="detail-sqft" placeholder="e.g. 2400" min="100" step="1" style="flex:1;">
-                    <button type="button" class="btn btn-primary" onclick="onManualSqft()" style="width:auto; flex:0 0 auto;">💾 Save</button>
-                  </div>
-                </div>
 
                 <div id="quote-display" style="margin-top:1rem;"></div>
               </div>
