@@ -438,11 +438,14 @@
         margin: 1rem 0;
       }
 
+      .mode-btns { flex-direction: column; }
+
       @media (min-width: 768px) {
         html { font-size: 20px; }
         .page { max-width: 700px; }
         .card { padding: 1.5rem; }
         .action-btns .btn { flex: 1 1 calc(50% - .4rem); }
+        .mode-btns { flex-direction: row; }
         .pitch-selector { grid-template-columns: repeat(4, 1fr); }
       }
     </style>
@@ -1148,7 +1151,7 @@
                 <!-- Mode toggle -->
                 <div class="form-group">
                   <label>How do you know your house size?</label>
-                  <div class="action-btns" style="margin-bottom:0; flex-wrap:nowrap;">
+                  <div class="action-btns mode-btns" style="margin-bottom:0;">
                     <button type="button" class="btn btn-secondary active" id="mode-dims" onclick="setCalcMode('dims')">📏 Length & Width</button>
                     <button type="button" class="btn btn-secondary" id="mode-living" onclick="setCalcMode('living')">🏠 Living Area</button>
                     <button type="button" class="btn btn-secondary" id="mode-roofsqt" onclick="setCalcMode('roofsqt')">📐 Roof Sq Ft</button>
@@ -1233,7 +1236,7 @@
                 <!-- Discount -->
                 <div class="form-group" style="margin-top:1rem;">
                   <label>Discount</label>
-                  <div class="action-btns" style="margin-bottom:0; flex-wrap:nowrap;">
+                  <div class="action-btns mode-btns" style="margin-bottom:0;">
                     <button type="button" class="discount-btn active" id="disc-none" onclick="selectDiscount(0, this)">No discount</button>
                     <button type="button" class="discount-btn" id="disc-15" onclick="selectDiscount(0.15, this)">15% off</button>
                     <button type="button" class="discount-btn" id="disc-20" onclick="selectDiscount(0.20, this)">20% off</button>
