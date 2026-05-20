@@ -990,34 +990,32 @@
           </div>
         `;
 
-        const quoteEl = document.getElementById('quote-display');
+        const quoteEl = document.getElementById('calc-result');
         if (lead.quote && lead.quote.total) {
           const q = lead.quote;
           let discountLine = '';
           if (q.discount) {
-            discountLine = `<div class="label" style="margin-top:.5rem;">Discount: ${Math.round(q.discount * 100)}% off</div>`;
+            discountLine = `\u003cdiv class="label" style="margin-top:.5rem;"\u003eDiscount: ${Math.round(q.discount * 100)}% off\u003c/div\u003e`;
           }
+          quoteEl.style.display = 'block';
           quoteEl.innerHTML = `
-            <div class="quote-result">
-              <div class="label">Roof Size</div>
-              <div class="big-number" style="font-size:2rem;">${esc(String(lead.sqft))} sq ft</div>
-              <div class="label" style="margin-top:1rem;">Renewal Estimate</div>
-              <div class="big-number">${formatCurrency(q.total)}</div>
+            \u003cdiv class="quote-result"\u003e
+              \u003cdiv class="label"\u003eRoof Size\u003c/div\u003e
+              \u003cdiv class="big-number" style="font-size:2rem;"\u003e${esc(String(lead.sqft))} sq ft\u003c/div\u003e
+              \u003cdiv class="label" style="margin-top:1rem;"\u003eRenewal Estimate\u003c/div\u003e
+              \u003cdiv class="big-number"\u003e${formatCurrency(q.total)}\u003c/div\u003e
               ${discountLine}
-              <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
+              \u003cdiv style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);"\u003e
                 at ${formatCurrency(q.rate)}/sq ft
-              </div>
-            </div>
-            <div class="action-btns">
-              <button class="btn btn-secondary" onclick="onCopyQuote()">📋 Copy Quote</button>
-            </div>
+              \u003c/div\u003e
+            \u003c/div\u003e
+            \u003cdiv class="action-btns"\u003e
+              \u003cbutton class="btn btn-secondary" onclick="onCopyQuote()"\u003e📋 Copy Quote\u003c/button\u003e
+            \u003c/div\u003e
           `;
         } else {
-          quoteEl.innerHTML = `
-            <div class="card" style="text-align:center;color:var(--text-light); border:2px dashed var(--border);">
-              No quote yet.\nUse the roof calculator below, or enter sq ft manually.
-            </div>
-          `;
+          quoteEl.style.display = 'none';
+          quoteEl.innerHTML = '';
         }
       }
 
@@ -1226,8 +1224,6 @@
 
                 <!-- Results -->
                 <div id="calc-result" style="display:none; margin-top:1rem;"></div>
-
-                <div id="quote-display" style="margin-top:1rem;"></div>
               </div>
 
               <div class="card">
