@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shingle Roof Renewal — Show Quote Capture</title>
+    <style>
+      :root {
+        --primary: #0ea5e9;
+        --primary-dark: #0277bd;
+        --accent: #06b6d4;
+        --teal: #14b8a6;
+        --bg: #f0f9ff;
+        --card: #ffffff;
+        --text: #1e293b;
+        --text-light: #64748b;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --border: #e2e8f0;
+        --shadow: 0 4px 6px -1px rgb(0 0 0 / .07), 0 2px 4px -2px rgb(0 0 0 / .07);
+        --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / .07), 0 4px 6px -4px rgb(0 0 0 / .07);
+      }
+
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+
+      html { font-size: 18px; }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+        -webkit-tap-highlight-color: transparent;
+        overscroll-behavior-y: none;
+      }
+
+      .app-header {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--teal) 100%);
+        color: white;
+        padding: 1rem;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: var(--shadow);
+      }
+      .app-header h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -.02em; }
+      .app-header p { font-size: .85rem; opacity: .9; margin-top: .2rem; }
+
+      .nav-bar {
+        display: flex;
+        gap: .5rem;
+        padding: .75rem 1rem;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .nav-bar::-webkit-scrollbar { display: none; }
+      .nav-btn {
+        flex: 1;
+        min-width: 110px;
+        padding: .65rem .5rem;
+        border: 2px solid var(--border);
+        border-radius: .75rem;
+        background: var(--card);
+        color: var(--text-light);
+        font-size: .9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .3rem;
+        transition: all .15s ease;
+      }
+      .nav-btn.active {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: #e0f2fe;
+      }
+      .nav-btn .icon { font-size: 1.3rem; }
+      .nav-btn .badge {
+        background: var(--primary);
+        color: white;
+        font-size: .7rem;
+        padding: .15rem .4rem;
+        border-radius: .5rem;
+        min-width: 1.4rem;
+      }
+
+      .page { display: none; padding: 1rem; max-width: 600px; margin: 0 auto; }
+      .page.active { display: block; }
+
+      .card {
+        background: var(--card);
+        border-radius: 1rem;
+        padding: 1.25rem;
+        box-shadow: var(--shadow);
+        margin-bottom: 1rem;
+      }
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+      }
+
+      label {
+        display: block;
+        font-size: .95rem;
+        font-weight: 600;
+        margin-bottom: .4rem;
+        color: var(--text);
+      }
+      input[type="text"], input[type="tel"], input[type="email"], input[type="number"],
+      select, textarea {
+        width: 100%;
+        padding: .85rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: .75rem;
+        font-size: 1rem;
+        background: #fff;
+        color: var(--text);
+        transition: border-color .15s ease;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(14,165,233,.1);
+      }
+      textarea { resize: vertical; min-height: 80px; }
+      select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 16px; padding-right: 2.5rem; }
+
+      .form-group { margin-bottom: 1rem; }
+      .form-row { display: flex; gap: 1rem; }
+      .form-row .form-group { flex: 1; }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .5rem;
+        width: 100%;
+        padding: 1rem;
+        border: none;
+        border-radius: .75rem;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .15s ease;
+        text-decoration: none;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .btn:active { transform: scale(.98); opacity: .9; }
+      .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: #fff; box-shadow: var(--shadow); }
+      .btn-primary:active { background: var(--primary-dark); }
+      .btn-secondary { background: #f1f5f9; color: var(--text); border: 2px solid var(--border); }
+      .btn-success { background: var(--success); color: #fff; }
+      .btn-warning { background: var(--warning); color: #fff; }
+      .btn-teal { background: var(--teal); color: #fff; }
+      .btn-outline { background: transparent; color: var(--primary); border: 2px solid var(--primary); }
+      .btn-danger-outline { background: transparent; color: var(--danger); border: 2px solid var(--danger); }
+      .btn-lg { padding: 1.2rem; font-size: 1.15rem; }
+
+      .status-badge {
+        display: inline-block;
+        padding: .25rem .75rem;
+        border-radius: .5rem;
+        font-size: .8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+      }
+      .status-new { background: #e0f2fe; color: #0369a1; }
+      .status-contacted { background: #fef3c7; color: #92400e; }
+      .status-quoted { background: #dcfce7; color: #166534; }
+      .status-followup { background: #fce7f3; color: #9d174d; }
+      .status-closedwon { background: #dcfce7; color: #166534; border: 2px solid var(--success); }
+      .status-closedlost { background: #fee2e2; color: #991b1b; }
+
+      .success-page { text-align: center; padding: 2rem 1rem; }
+      .success-page .icon { font-size: 4rem; margin-bottom: 1rem; }
+      .success-page h2 { font-size: 1.5rem; margin-bottom: .5rem; }
+      .success-page p { color: var(--text-light); margin-bottom: 1.5rem; }
+
+      .lead-card {
+        background: var(--card);
+        border-radius: .75rem;
+        padding: 1rem;
+        margin-bottom: .75rem;
+        box-shadow: var(--shadow);
+        cursor: pointer;
+        transition: all .15s ease;
+        border-left: 4px solid var(--primary);
+      }
+      .lead-card:hover { transform: translateX(4px); box-shadow: var(--shadow-lg); }
+      .lead-card .name { font-weight: 700; font-size: 1.05rem; }
+      .lead-card .meta { color: var(--text-light); font-size: .85rem; margin-top: .25rem; }
+      .lead-card .amount { font-weight: 700; color: var(--teal); font-size: 1.1rem; }
+
+      .search-box {
+        width: 100%;
+        padding: .85rem 1rem .85rem 2.8rem;
+        border: 2px solid var(--border);
+        border-radius: .75rem;
+        font-size: 1rem;
+        background: var(--card);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: 1rem center; background-size: 18px;
+      }
+
+      .quote-result {
+        background: linear-gradient(135deg, #e0f2fe 0%, #ccfbf1 100%);
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        margin: 1rem 0;
+      }
+      .quote-result .big-number { font-size: 3rem; font-weight: 800; color: var(--primary-dark); }
+      .quote-result .label { font-size: .95rem; color: var(--text-light); }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: .6rem 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .detail-row:last-child { border-bottom: none; }
+      .detail-label { color: var(--text-light); font-size: .9rem; }
+      .detail-value { font-weight: 600; }
+
+      .toast {
+        position: fixed;
+        bottom: 1.5rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(120px);
+        background: #1e293b;
+        color: #fff;
+        padding: .85rem 1.5rem;
+        border-radius: .75rem;
+        font-weight: 600;
+        z-index: 200;
+        opacity: 0;
+        transition: all .3s ease;
+        white-space: nowrap;
+      }
+      .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+      .action-btns { display: flex; gap: .75rem; margin-top: 1rem; flex-wrap: wrap; }
+      .action-btns .btn { flex: 1; min-width: 140px; }
+
+      .pitch-selector {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: .5rem;
+      }
+      .pitch-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: .25rem;
+        padding: .75rem .5rem;
+        border: 2px solid var(--border);
+        border-radius: .75rem;
+        background: var(--card);
+        color: var(--text-light);
+        font-size: .85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .15s ease;
+      }
+      .pitch-btn .pitch-icon { font-size: 1.5rem; }
+      .pitch-btn.active {
+        border-color: var(--primary);
+        background: #e0f2fe;
+        color: var(--primary);
+      }
+      .pitch-btn:active { transform: scale(.97); }
+
+      .export-bar {
+        display: flex;
+        gap: .5rem;
+        margin-bottom: 1rem;
+      }
+      .export-bar .btn { flex: 1; padding: .6rem; font-size: .9rem; }
+
+      .po-banner {
+        background: linear-gradient(135deg, var(--primary) 0%, var(--teal) 100%);
+        color: white;
+        border-radius: .75rem;
+        padding: .6rem 1rem;
+        text-align: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        letter-spacing: .05em;
+      }
+
+      .divider {
+        border: none;
+        border-top: 2px solid var(--border);
+        margin: 1rem 0;
+      }
+
+      @media (min-width: 768px) {
+        html { font-size: 20px; }
+        .page { max-width: 700px; }
+        .card { padding: 1.5rem; }
+        .action-btns .btn { flex: 1 1 calc(50% - .4rem); }
+        .pitch-selector { grid-template-columns: repeat(4, 1fr); }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script>
+      // ===========================================================
+      // CONFIG (edit before deploying)
+      // 1. Create a Telegram group, add your bot
+      // 2. Send a message in the group
+      // 3. Visit:
+      //    https://api.telegram.org/bot8635151627:AAHvCy0vAMQJKuIsRIQKwAvhcZhT2BrAIXs/getUpdates
+      // 4. Find "chat":{"id":-100XXXXXXXXXX... copy that id into TELEGRAM_CHAT_ID below
+      // ===========================================================
+      const CONFIG = {
+        TELEGRAM_BOT_TOKEN: '8635151627:AAHvCy0vAMQJKuIsRIQKwAvhcZhT2BrAIXs',
+        TELEGRAM_CHAT_ID: '8158528333',
+        RATE_PER_SQFT: 1.65,
+        MAX_LEADS: 500,
+        SCHEMA_VERSION: 4,
+      };
+
+      // ===========================================================
+      // STATE
+      // ===========================================================
+      let currentPage = 'capture';
+      let currentLeadId = null;
+      let formDirty = false;
+
+      function getLeads() {
+        try {
+          const raw = localStorage.getItem('sqr_leads') || '[]';
+          let leads = JSON.parse(raw);
+          if (!Array.isArray(leads)) leads = [];
+          leads = leads.map(migrateLead).filter(Boolean);
+          return leads.slice(0, CONFIG.MAX_LEADS);
+        } catch (e) {
+          console.error('Failed to load leads', e);
+          return [];
+        }
+      }
+      function saveLeads(leads) {
+        const trimmed = leads.slice(0, CONFIG.MAX_LEADS);
+        localStorage.setItem('sqr_leads', JSON.stringify(trimmed));
+        updateBadge();
+      }
+      function generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+      }
+      function getNextPoNumber() {
+        let next = parseInt(localStorage.getItem('sqr_next_po') || '1', 10);
+        if (isNaN(next) || next < 1) next = 1;
+        localStorage.setItem('sqr_next_po', String(next + 1));
+        return next;
+      }
+
+      // ===========================================================
+      // SCHEMA / MIGRATION
+      // ===========================================================
+      function migrateLead(lead) {
+        if (!lead || typeof lead !== 'object') return null;
+        if (!lead._schemaVersion) {
+          lead._schemaVersion = CONFIG.SCHEMA_VERSION;
+          if (lead.quote && typeof lead.quote === 'number') {
+            lead.quote = {
+              rate: CONFIG.RATE_PER_SQFT,
+              sqft: lead.sqft || 0,
+              total: lead.quote,
+              computedAt: new Date().toISOString(),
+            };
+          }
+        }
+        if (lead._schemaVersion < 4) {
+          lead._schemaVersion = CONFIG.SCHEMA_VERSION;
+          
+        }
+        lead.id = lead.id || generateId();
+        lead.status = lead.status || 'New';
+        lead.createdAt = lead.createdAt || new Date().toISOString();
+        return lead;
+      }
+
+      // ===========================================================
+      // VALIDATION
+      // ===========================================================
+      function validatePhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        return digits.length >= 10;
+      }
+      function validateZip(zip) {
+        return /^\d{5}(-\d{4})?$/.test(zip.trim());
+      }
+      function normalizePhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+          return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+        }
+        return phone;
+      }
+      function isDuplicatePhone(phone, excludeId) {
+        const digits = phone.replace(/\D/g, '');
+        return getLeads().some(l => l.id !== excludeId && l.phone.replace(/\D/g, '') === digits);
+      }
+
+      // ===========================================================
+      // TELEGRAM
+      // ===========================================================
+      async function sendTelegram(text) {
+        if (!CONFIG.TELEGRAM_BOT_TOKEN || !CONFIG.TELEGRAM_CHAT_ID) {
+          showToast('Telegram not configured — set TELEGRAM_CHAT_ID');
+          return false;
+        }
+        const url = `https://api.telegram.org/bot${CONFIG.TELEGRAM_BOT_TOKEN}/sendMessage`;
+        const body = new URLSearchParams({ chat_id: CONFIG.TELEGRAM_CHAT_ID, text, parse_mode: 'HTML' });
+        try {
+          const r = await fetch(url, { method: 'POST', body });
+          if (!r.ok) throw new Error('Telegram HTTP ' + r.status);
+          showToast('Sent to Telegram');
+          return true;
+        } catch(e) {
+          showToast('Telegram send failed — check chat ID');
+          console.error(e);
+          return false;
+        }
+      }
+
+      function buildTelegramMessage(lead, includeQuote) {
+        const sep = '━'.repeat(21);
+        const poStr = lead.poNumber ? String(lead.poNumber).padStart(5, '0') : '00000';
+        const dt = new Date(lead.createdAt).toLocaleString('en-US', {
+          month: 'short', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York'
+        }) + ' ET';
+        const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
+
+        let msg = `🏠 New Roof Inspection Request\n📋 PO#: ${poStr}\n${sep}\n👤 Name: ${lead.name}\n📞 Phone: ${lead.phone.replace(/\D/g, '')}\n📧 Email: ${lead.email || 'N/A'}\n📍 Address: ${fullAddress}\n`;
+        if (lead.roofType) msg += `🏗️ Roof Type: ${lead.roofType}\n`;
+        if (lead.urgency) msg += `⏰ Urgency: ${lead.urgency}\n`;
+        if (lead.source) msg += `📎 Source: ${lead.source}\n`;
+        msg += `💬 Message: ${lead.notes || 'N/A'}\n${sep}\n🕐 ${dt}`;
+
+        if (includeQuote && lead.quote) {
+          const q = lead.quote;
+          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft\nTotal: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+        }
+        return msg;
+      }
+
+      async function sendLeadToTelegram(leadId) {
+        const lead = getLeads().find(l => l.id === leadId);
+        if (!lead) { showToast('Lead not found'); return false; }
+        const hasQuote = !!(lead.quote && lead.quote.total);
+        const text = buildTelegramMessage(lead, hasQuote);
+        return await sendTelegram(text);
+      }
+
+      // ===========================================================
+      // EXPORT / BACKUP
+      // ===========================================================
+      function exportJSON() {
+        const leads = getLeads();
+        const blob = new Blob([JSON.stringify(leads, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sqr-leads-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Exported JSON backup');
+      }
+      function exportCSV() {
+        const leads = getLeads();
+        if (leads.length === 0) { showToast('No leads to export'); return; }
+        const headers = ['PO#','Name','Phone','Email','Address','City','State','ZIP','RoofType','Urgency','Source','Status','SqFt','QuoteTotal','Notes','CreatedAt'];
+        const rows = leads.map(l => [
+          l.poNumber || '', l.name, l.phone, l.email, l.address, l.city, l.state, l.zip,
+          l.roofType, l.urgency, l.source, l.status,
+          (l.sqft || ''), ((l.quote && l.quote.total) || ''),
+          (l.notes || '').replace(/"/g, '""'), l.createdAt
+        ].map(v => `"${String(v).replace(/"/g, '""')}"`));
+        const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `sqr-leads-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast('Exported CSV');
+      }
+
+      // ===========================================================
+      // UI HELPERS
+      // ===========================================================
+      function showToast(msg) {
+        let t = document.querySelector('.toast');
+        if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role','status'); t.setAttribute('aria-live','polite'); document.body.appendChild(t); }
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+      }
+      function formatCurrency(n) {
+        return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      }
+      function formatDate(d) {
+        return new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+      function esc(s) {
+        const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+      }
+      function roundCurrency(n) {
+        return Math.round(n * 100) / 100;
+      }
+
+      // ===========================================================
+      // CLIPBOARD
+      // ===========================================================
+      async function copyToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('Copied to clipboard');
+        } catch (err) {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          try {
+            document.execCommand('copy');
+            showToast('Copied to clipboard');
+          } catch (e) {
+            showToast('Copy failed — please copy manually');
+          }
+          document.body.removeChild(ta);
+        }
+      }
+
+      // ===========================================================
+      // ROUTING
+      // ===========================================================
+      function showPage(name, leadId) {
+        currentPage = name;
+        currentLeadId = leadId || null;
+        document.querySelectorAll('.page').forEach(p => {
+          p.classList.remove('active');
+          p.setAttribute('aria-hidden', 'true');
+        });
+        const el = document.getElementById('page-' + name);
+        if (el) {
+          el.classList.add('active');
+          el.setAttribute('aria-hidden', 'false');
+        }
+        document.querySelectorAll('.nav-btn').forEach(b => {
+          const active = b.dataset.page === name;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-current', active ? 'page' : 'false');
+        });
+        window.scrollTo(0, 0);
+        if (name === 'detail' && leadId) renderDetail(leadId);
+        if (name === 'dashboard') renderDashboard();
+      }
+
+      // ===========================================================
+      // EVENT HANDLERS
+      // ===========================================================
+      function onSaveLead(e) {
+        e.preventDefault();
+        const f = e.target;
+        const rawPhone = f.phone.value.trim();
+        const rawZip = f.zip.value.trim();
+
+        if (!validatePhone(rawPhone)) {
+          showToast('Enter a valid 10-digit phone number');
+          f.phone.focus();
+          return;
+        }
+        if (!validateZip(rawZip)) {
+          showToast('Enter a valid 5-digit ZIP code');
+          f.zip.focus();
+          return;
+        }
+        if (isDuplicatePhone(rawPhone)) {
+          if (!confirm('A lead with this phone number already exists. Save anyway?')) {
+            return;
+          }
+        }
+
+        const lead = {
+          _schemaVersion: CONFIG.SCHEMA_VERSION,
+          id: generateId(),
+          poNumber: getNextPoNumber(),
+          name: f.name.value.trim(),
+          phone: normalizePhone(rawPhone),
+          email: f.email.value.trim(),
+          address: f.address.value.trim(),
+          city: f.city.value.trim(),
+          state: f.state.value.trim(),
+          zip: rawZip,
+          notes: f.notes.value.trim(),
+          source: f.source.value,
+          roofType: f.roofType.value,
+          urgency: f.urgency.value,
+          sqft: '',
+          quote: null,
+          status: 'New',
+          createdAt: new Date().toISOString(),
+        };
+        const leads = getLeads();
+        leads.unshift(lead);
+        saveLeads(leads);
+        formDirty = false;
+
+        renderSuccess(lead);
+        showPage('success');
+        f.reset();
+      }
+
+      function renderSuccess(lead) {
+        document.getElementById('succ-name').textContent = lead.name;
+      }
+
+      function onCopyAddress() {
+        const lead = getLeads().find(l => l.id === currentLeadId);
+        if (!lead) return;
+        const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
+        copyToClipboard(fullAddress);
+      }
+
+      function onSendToTelegram() {
+        sendLeadToTelegram(currentLeadId);
+      }
+
+      function onSaveSqft(e) {
+        e.preventDefault();
+        const sqft = parseFloat(document.getElementById('detail-sqft').value);
+        if (!sqft || sqft <= 0) { showToast('Enter valid square footage'); return; }
+        const leads = getLeads();
+        const idx = leads.findIndex(l => l.id === currentLeadId);
+        if (idx === -1) return;
+        leads[idx].sqft = sqft;
+        leads[idx].quote = {
+          rate: CONFIG.RATE_PER_SQFT,
+          sqft: sqft,
+          total: roundCurrency(sqft * CONFIG.RATE_PER_SQFT),
+          computedAt: new Date().toISOString(),
+        };
+        saveLeads(leads);
+        showToast('Quote saved');
+        // Auto-send to Telegram after quote is saved
+        sendLeadToTelegram(currentLeadId);
+        renderDetail(currentLeadId);
+      }
+
+      function onUpdateStatus(status) {
+        const leads = getLeads();
+        const idx = leads.findIndex(l => l.id === currentLeadId);
+        if (idx === -1) return;
+        leads[idx].status = status;
+        saveLeads(leads);
+        showToast(`Status: ${status}`);
+        renderDetail(currentLeadId);
+      }
+
+      function onCopyQuote() {
+        const lead = getLeads().find(l => l.id === currentLeadId);
+        if (!lead || !lead.quote) { showToast('No quote'); return; }
+        const q = lead.quote;
+        const text = `Roof Renewal Estimate for ${lead.name}\n${lead.address}, ${lead.city} ${lead.state}\nRoof size: ${lead.sqft} sq ft\nRate: ${formatCurrency(q.rate)}/sq ft\nTotal: ${formatCurrency(q.total)}`;
+        copyToClipboard(text);
+      }
+
+      // ===========================================================
+      // ROOF CALCULATOR
+      // ===========================================================
+      let currentPitch = 1.15;
+
+      function setCalcMode(mode) {
+        const elDims = document.getElementById('calc-dims');
+        const elLiving = document.getElementById('calc-living');
+        const elCommon = document.getElementById('calc-common');
+        const elResult = document.getElementById('calc-result');
+        const elModeDims = document.getElementById('mode-dims');
+        const elModeLiving = document.getElementById('mode-living');
+        if (elDims) elDims.style.display = mode === 'dims' ? 'block' : 'none';
+        if (elLiving) elLiving.style.display = mode === 'living' ? 'block' : 'none';
+        if (elCommon) elCommon.style.display = 'block';
+        if (elResult) elResult.style.display = 'none';
+        if (elModeDims) elModeDims.classList.toggle('active', mode === 'dims');
+        if (elModeLiving) elModeLiving.classList.toggle('active', mode === 'living');
+      }
+
+      function selectPitch(btn) {
+        document.querySelectorAll('.pitch-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentPitch = parseFloat(btn.dataset.pitch);
+      }
+
+      function calculateRoof() {
+        let footprint = 0;
+        const elDims = document.getElementById('calc-dims');
+        const mode = elDims && elDims.style.display !== 'none' ? 'dims' : 'living';
+
+        if (mode === 'dims') {
+          const length = parseFloat(document.getElementById('calc-length').value);
+          const width = parseFloat(document.getElementById('calc-width').value);
+          if (!length || !width || length <= 0 || width <= 0) {
+            showToast('Enter house length and width');
+            return;
+          }
+          footprint = length * width;
+        } else {
+          const livingSqft = parseFloat(document.getElementById('calc-living-sqft').value);
+          const stories = parseInt(document.getElementById('calc-stories').value);
+          if (!livingSqft || livingSqft <= 0) {
+            showToast('Enter living area square footage');
+            return;
+          }
+          footprint = livingSqft / stories;
+        }
+
+        const garageSqft = parseFloat(document.getElementById('calc-garage').value);
+        const overhangFactor = parseFloat(document.getElementById('calc-overhang').value);
+
+        const roofSqft = Math.round((footprint + garageSqft) * currentPitch * overhangFactor);
+        const totalCost = roundCurrency(roofSqft * CONFIG.RATE_PER_SQFT);
+        
+        const resultEl = document.getElementById('calc-result');
+        resultEl.style.display = 'block';
+        resultEl.innerHTML = `
+          <div class="quote-result">
+            <div class="label">Estimated Roof Size</div>
+            <div class="big-number" style="font-size:2.5rem;">${roofSqft.toLocaleString()} sq ft</div>
+            <div class="label" style="margin-top:1rem;">Total Estimate</div>
+            <div class="big-number">${formatCurrency(totalCost)}</div>
+            <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
+              at ${formatCurrency(CONFIG.RATE_PER_SQFT)}/sq ft
+            </div>
+          </div>
+          <div class="action-btns">
+            <button class="btn btn-primary" onclick="saveCalculatedQuote(${roofSqft}, ${totalCost})">💾 Save to Lead & Send Telegram</button>
+            <button class="btn btn-secondary" onclick="document.getElementById('calc-result').style.display='none';">↩️ Recalculate</button>
+          </div>
+        `;
+      }
+
+      function saveCalculatedQuote(sqft, quoteTotal) {
+        const leads = getLeads();
+        const idx = leads.findIndex(l => l.id === currentLeadId);
+        if (idx === -1) return;
+        leads[idx].sqft = sqft;
+        leads[idx].quote = {
+          rate: CONFIG.RATE_PER_SQFT,
+          sqft: sqft,
+          total: quoteTotal,
+          computedAt: new Date().toISOString(),
+        };
+        saveLeads(leads);
+        showToast('Quote saved');
+        document.getElementById('detail-sqft').value = sqft;
+        // Auto-send to Telegram after quote is saved
+        sendLeadToTelegram(currentLeadId);
+        renderDetail(currentLeadId);
+      }
+
+      function onManualSqft() {
+        const sqft = parseFloat(document.getElementById('detail-sqft').value);
+        if (!sqft || sqft <= 0) { showToast('Enter valid square footage'); return; }
+        const leads = getLeads();
+        const idx = leads.findIndex(l => l.id === currentLeadId);
+        if (idx === -1) return;
+        leads[idx].sqft = sqft;
+        leads[idx].quote = {
+          rate: CONFIG.RATE_PER_SQFT,
+          sqft: sqft,
+          total: roundCurrency(sqft * CONFIG.RATE_PER_SQFT),
+          computedAt: new Date().toISOString(),
+        };
+        saveLeads(leads);
+        showToast('Quote saved');
+        // Auto-send to Telegram after manual save
+        sendLeadToTelegram(currentLeadId);
+        renderDetail(currentLeadId);
+      }
+
+      // ===========================================================
+      // RENDERERS
+      // ===========================================================
+      function updateBadge() {
+        const count = getLeads().length;
+        const badge = document.getElementById('badge-count');
+        if (badge) badge.textContent = count;
+      }
+
+      function renderDashboard() {
+        const list = document.getElementById('lead-list');
+        const term = document.getElementById('lead-search')?.value?.toLowerCase() || '';
+        const leads = getLeads().filter(l =>
+          (l.name || '').toLowerCase().includes(term) ||
+          (l.phone || '').includes(term) ||
+          (l.address || '').toLowerCase().includes(term)
+        );
+
+        if (leads.length === 0) {
+          list.innerHTML = `<div class="card" style="text-align:center;color:var(--text-light);">No leads yet. Tap "Capture" to add one.</div>`;
+          return;
+        }
+
+        list.innerHTML = leads.map(l => {
+          const statusClass = 'status-' + (l.status || 'New').toLowerCase().replace(/\s+/g, '');
+          const poStr = l.poNumber ? String(l.poNumber).padStart(5, '0') : '00000';
+          const quoteText = (l.quote && l.quote.total) ? formatCurrency(l.quote.total) : '';
+          return `<div class="lead-card" onclick="showPage('detail','${l.id}')">
+            <div class="name">${esc(l.name)}</div>
+            <div class="meta">#${poStr} · ${esc(l.address)} · ${esc(l.phone)}</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;">
+              <span class="status-badge ${statusClass}">${esc(l.status || 'New')}</span>
+              <span class="amount">${quoteText}</span>
+            </div>
+          </div>`;
+        }).join('');
+      }
+
+      function renderDetail(id) {
+        const lead = getLeads().find(l => l.id === id);
+        if (!lead) return;
+        currentLeadId = id;
+        const poStr = lead.poNumber ? String(lead.poNumber).padStart(5, '0') : '00000';
+        const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
+
+        document.getElementById('detail-content').innerHTML = `
+          <div class="po-banner">PO# ${poStr}</div>
+          <div class="card">
+            <div class="card-title">📋 Customer Details</div>
+            <div class="detail-row"><span class="detail-label">Name</span><span class="detail-value">${esc(lead.name)}</span></div>
+            <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-value"><a href="tel:${esc(lead.phone)}" style="color:var(--primary)">${esc(lead.phone)}</a></span></div>
+            <div class="detail-row"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(lead.email)}" style="color:var(--primary)">${esc(lead.email)}</a></span></div>
+            <div class="detail-row"><span class="detail-label">Address</span><span class="detail-value">${esc(fullAddress)}</span></div>
+            <div class="detail-row"><span class="detail-label">Roof Type</span><span class="detail-value">${esc(lead.roofType)}</span></div>
+            <div class="detail-row"><span class="detail-label">Urgency</span><span class="detail-value">${esc(lead.urgency)}</span></div>
+            <div class="detail-row"><span class="detail-label">Lead Source</span><span class="detail-value">${esc(lead.source)}</span></div>
+            <div class="detail-row"><span class="detail-label">Notes</span><span class="detail-value">${esc(lead.notes || '—')}</span></div>
+            <div class="detail-row"><span class="detail-label">Captured</span><span class="detail-value">${formatDate(lead.createdAt)}</span></div>
+            <div class="detail-row"><span class="detail-label">Status</span><span class="detail-value"><span class="status-badge status-${esc((lead.status || 'New').toLowerCase().replace(/\s+/g,''))}">${esc(lead.status || 'New')}</span></span></div>
+            <div class="action-btns" style="margin-top:1rem;">
+              <button class="btn btn-teal" onclick="onCopyAddress()">📋 Copy Address (for fixr.com)</button>
+              <button class="btn btn-primary" onclick="onSendToTelegram()">📤 Send to Telegram</button>
+            </div>
+          </div>
+        `;
+
+        const sqftInput = document.getElementById('detail-sqft');
+        if (sqftInput) sqftInput.value = lead.sqft || '';
+
+        const quoteEl = document.getElementById('quote-display');
+        if (lead.quote && lead.quote.total) {
+          const q = lead.quote;
+          quoteEl.innerHTML = `
+            <div class="quote-result">
+              <div class="label">Roof Size</div>
+              <div class="big-number" style="font-size:2rem;">${esc(String(lead.sqft))} sq ft</div>
+              <div class="label" style="margin-top:1rem;">Renewal Estimate</div>
+              <div class="big-number">${formatCurrency(q.total)}</div>
+              <div style="margin-top:.75rem;font-size:.9rem;color:var(--text-light);">
+                at ${formatCurrency(q.rate)}/sq ft
+              </div>
+            </div>
+            <div class="action-btns">
+              <button class="btn btn-secondary" onclick="onCopyQuote()">📋 Copy Quote</button>
+            </div>
+          `;
+        } else {
+          quoteEl.innerHTML = `
+            <div class="card" style="text-align:center;color:var(--text-light); border:2px dashed var(--border);">
+              No quote yet.\nUse the roof calculator below, or enter sq ft manually.
+            </div>
+          `;
+        }
+      }
+
+      // ===========================================================
+      // INIT
+      // ===========================================================
+      function init() {
+        const html = `
+          <div class="app-header">
+            <h1>Shingle Roof Renewal</h1>
+            <p>Show Quote Capture</p>
+          </div>
+
+          <nav class="nav-bar" role="navigation" aria-label="Main">
+            <button class="nav-btn active" data-page="capture" onclick="showPage('capture')" aria-current="page">
+              <span class="icon">➕</span>
+              <span>Capture</span>
+            </button>
+            <button class="nav-btn" data-page="dashboard" onclick="showPage('dashboard')">
+              <span class="icon">📋</span>
+              <span>Leads</span>
+              <span class="badge" id="badge-count">0</span>
+            </button>
+          </nav>
+
+          <main id="main-content">
+            <!-- PAGE: CAPTURE -->
+            <div id="page-capture" class="page active" aria-hidden="false">
+              <form id="lead-form" onsubmit="onSaveLead(event)">
+                <div class="card">
+                  <div class="card-title">📝 Lead Capture</div>
+                  <div class="form-group"><label for="lead-name">Full Name</label><input type="text" id="lead-name" name="name" placeholder="John Smith" required></div>
+                  <div class="form-row">
+                    <div class="form-group"><label for="lead-phone">Phone</label><input type="tel" id="lead-phone" name="phone" placeholder="(954) 555-1234" required></div>
+                    <div class="form-group"><label for="lead-email">Email</label><input type="email" id="lead-email" name="email" placeholder="john@email.com"></div>
+                  </div>
+                  <div class="form-group"><label for="lead-address">Street Address</label><input type="text" id="lead-address" name="address" placeholder="123 Main St" required></div>
+                  <div class="form-row">
+                    <div class="form-group"><label for="lead-city">City</label><input type="text" id="lead-city" name="city" placeholder="Fort Lauderdale" required></div>
+                    <div class="form-group"><label for="lead-state">State</label><input type="text" id="lead-state" name="state" value="FL" required></div>
+                    <div class="form-group"><label for="lead-zip">ZIP</label><input type="text" id="lead-zip" name="zip" placeholder="33073" required></div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label for="lead-roof">Roof Type</label>
+                      <select id="lead-roof" name="roofType">
+                        <option value="Shingle">Shingle</option>
+                        <option value="Tile">Tile</option>
+                        <option value="Metal">Metal</option>
+                        <option value="Unknown">Unknown</option>
+                      </select>
+                    </div>
+                    <div class="form-group"><label for="lead-urgency">Urgency</label>
+                      <select id="lead-urgency" name="urgency">
+                        <option value="Ready now">Ready now</option>
+                        <option value="30 days">30 days</option>
+                        <option value="3 months">3 months</option>
+                        <option value="Just researching">Just researching</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group"><label for="lead-source">Lead Source</label>
+                      <select id="lead-source" name="source">
+                        <option value="Home Show">Home Show</option>
+                        <option value="Facebook">Facebook</option>
+                        <option value="Referral">Referral</option>
+                        <option value="Website">Website</option>
+                        <option value="Walk-in">Walk-in</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group"><label for="lead-notes">Note</label><textarea id="lead-notes" name="notes" placeholder="Any details about the roof..."></textarea></div>
+                  <button type="submit" class="btn btn-primary btn-lg">💾 Save Lead</button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PAGE: SUCCESS -->
+            <div id="page-success" class="page" aria-hidden="true">
+              <div class="success-page">
+                <div class="icon">✅</div>
+                <h2>Lead Saved!</h2>
+                <p><strong id="succ-name"></strong> is in the system.</p>
+                <div class="action-btns" style="justify-content:center;">
+                  <button class="btn btn-outline" onclick="showPage('detail', currentLeadId)">📐 Enter Roof Sq Ft</button>
+                  <button class="btn btn-secondary" onclick="showPage('capture')">➕ New Lead</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAGE: DASHBOARD -->
+            <div id="page-dashboard" class="page" aria-hidden="true">
+              <div class="card">
+                <div class="card-title">📋 Leads Dashboard</div>
+                <div class="export-bar">
+                  <button class="btn btn-secondary" onclick="exportJSON()">⬇️ Export JSON</button>
+                  <button class="btn btn-secondary" onclick="exportCSV()">⬇️ Export CSV</button>
+                </div>
+                <input type="text" id="lead-search" class="search-box" placeholder="Search by name, phone, address..." oninput="renderDashboard()">
+              </div>
+              <div id="lead-list"></div>
+            </div>
+
+            <!-- PAGE: DETAIL -->
+            <div id="page-detail" class="page" aria-hidden="true">
+              <button class="btn btn-secondary" style="width:auto;margin-bottom:1rem;" onclick="showPage('dashboard')">← Back to Leads</button>
+              <div id="detail-content"></div>
+
+              <div class="card">
+                <div class="card-title">📐 Roof Quote Calculator</div>
+
+                <!-- Mode toggle -->
+                <div class="form-group">
+                  <label>How do you know your house size?</label>
+                  <div class="action-btns" style="margin-bottom:0;">
+                    <button type="button" class="btn btn-secondary active" id="mode-dims" onclick="setCalcMode('dims')">📏 I know length & width</button>
+                    <button type="button" class="btn btn-secondary" id="mode-living" onclick="setCalcMode('living')">🏠 I know living area</button>
+                  </div>
+                </div>
+
+                <!-- Dimensions mode -->
+                <div id="calc-dims" style="display:none;">
+                  <div class="form-row">
+                    <div class="form-group"><label for="calc-length">House Length (ft)</label><input type="number" id="calc-length" placeholder="e.g. 50" min="10"></div>
+                    <div class="form-group"><label for="calc-width">House Width (ft)</label><input type="number" id="calc-width" placeholder="e.g. 30" min="10"></div>
+                  </div>
+                </div>
+
+                <!-- Living area mode -->
+                <div id="calc-living" style="display:none;">
+                  <div class="form-row">
+                    <div class="form-group"><label for="calc-living-sqft">Living Area (sq ft)</label><input type="number" id="calc-living-sqft" placeholder="e.g. 1800" min="100"></div>
+                    <div class="form-group"><label for="calc-stories">Stories</label>
+                      <select id="calc-stories">
+                        <option value="1">1 story</option>
+                        <option value="2">2 stories</option>
+                        <option value="3">3 stories</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Common fields -->
+                <div id="calc-common" style="display:none;">
+                  <div class="form-group">
+                    <label>Roof Pitch</label>
+                    <div class="pitch-selector">
+                      <button type="button" class="pitch-btn" data-pitch="1.05" onclick="selectPitch(this)">
+                        <span class="pitch-icon">▬</span>
+                        <span>Flat / Low</span>
+                      </button>
+                      <button type="button" class="pitch-btn active" data-pitch="1.15" onclick="selectPitch(this)">
+                        <span class="pitch-icon">/</span>
+                        <span>Medium</span>
+                      </button>
+                      <button type="button" class="pitch-btn" data-pitch="1.25" onclick="selectPitch(this)">
+                        <span class="pitch-icon">/|</span>
+                        <span>Steep</span>
+                      </button>
+                      <button type="button" class="pitch-btn" data-pitch="1.35" onclick="selectPitch(this)">
+                        <span class="pitch-icon">/||</span>
+                        <span>Very Steep</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group"><label for="calc-garage">Garage</label>
+                      <select id="calc-garage">
+                        <option value="0">No garage</option>
+                        <option value="240">1-car garage (+240 sq ft)</option>
+                        <option value="480">2-car garage (+480 sq ft)</option>
+                        <option value="720">3-car garage (+720 sq ft)</option>
+                      </select>
+                    </div>
+                    <div class="form-group"><label for="calc-overhang">Overhang</label>
+                      <select id="calc-overhang">
+                        <option value="1.0">None</option>
+                        <option value="1.10" selected>Standard (+10%)</option>
+                        <option value="1.20">Large (+20%)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <button type="button" class="btn btn-primary btn-lg" onclick="calculateRoof()">🧮 Calculate Roof & Quote</button>
+                </div>
+
+                <!-- Results -->
+                <div id="calc-result" style="display:none; margin-top:1rem;"></div>
+
+                <!-- Manual override -->
+                <div class="form-group" style="margin-top:1.5rem; padding-top:1rem; border-top:2px dashed var(--border);">
+                  <label for="detail-sqft">Or enter roof sq ft manually</label>
+                  <div class="form-row">
+                    <input type="number" id="detail-sqft" placeholder="e.g. 2400" min="100" step="1" style="flex:1;">
+                    <button type="button" class="btn btn-primary" onclick="onManualSqft()" style="width:auto; flex:0 0 auto;">💾 Save</button>
+                  </div>
+                </div>
+
+                <div id="quote-display" style="margin-top:1rem;"></div>
+              </div>
+
+              <div class="card">
+                <div class="card-title">📌 Update Status</div>
+                <div class="action-btns">
+                  <button class="btn btn-secondary" onclick="onUpdateStatus('New')">🆕 New</button>
+                  <button class="btn btn-secondary" onclick="onUpdateStatus('Contacted')">📞 Contacted</button>
+                  <button class="btn btn-success" onclick="onUpdateStatus('Quoted')">💰 Quoted</button>
+                  <button class="btn btn-warning" onclick="onUpdateStatus('Follow-up')">🔔 Follow-up</button>
+                  <button class="btn btn-outline" onclick="onUpdateStatus('Closed Won')">🎉 Closed Won</button>
+                  <button class="btn btn-danger-outline" onclick="onUpdateStatus('Closed Lost')">❌ Closed Lost</button>
+                </div>
+              </div>
+            </div>
+          </main>
+        `;
+        document.getElementById('root').innerHTML = html;
+        setCalcMode('dims');
+        updateBadge();
+
+        const form = document.getElementById('lead-form');
+        if (form) {
+          form.addEventListener('input', () => { formDirty = true; });
+          window.addEventListener('beforeunload', (e) => {
+            if (formDirty && currentPage === 'capture') {
+              e.preventDefault();
+              e.returnValue = '';
+            }
+          });
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>
