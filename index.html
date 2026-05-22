@@ -232,7 +232,8 @@
       select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='rgba(255,255,255,0.5)' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; background-size: 16px; padding-right: 2.5rem; }
 
       .form-group { margin-bottom: 1rem; }
-      .form-row { display: flex; gap: 1rem; }
+      .form-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+      .form-row > .form-group { flex: 1 1 0; min-width: 0; }
       .form-row .form-group { flex: 1; }
 
       .btn {
@@ -491,6 +492,29 @@
         .export-bar { flex-direction: row; }
         .pitch-selector { grid-template-columns: repeat(4, 1fr); }
       }
+
+      /* Appointment Picker */
+      #appt-picker { display:none; margin-top:0.5rem; padding:0.75rem; border:1px solid var(--border); border-radius:0.5rem; background:#e6f2ff; width:100%; min-width:320px; }
+      .appt-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; }
+      .appt-header button { background:none; border:none; font-size:1.1rem; cursor:pointer; color:var(--primary); }
+      .appt-month { font-weight:600; font-size:0.9rem; color:var(--primary); }
+      .appt-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:0.25rem; text-align:center; font-size:0.75rem; }
+      .appt-grid .day-label { color:var(--text-light); font-weight:500; padding:0.2rem; }
+      .appt-grid .day { padding:0.35rem 0; border-radius:0.35rem; cursor:pointer; }
+      .appt-grid .day:hover { background:var(--border); }
+      .appt-grid .day.past { color:var(--text-light); opacity:0.5; cursor:default; }
+      .appt-grid .day.sunday { color:var(--danger); opacity:0.5; cursor:default; }
+      .appt-grid .day.selected { background:var(--accent); color:#fff; font-weight:600; }
+      .appt-grid .day.green { color:#22c55e; font-weight:600; }
+      .appt-grid .day.yellow { color:#eab308; font-weight:600; }
+      .appt-grid .day.red { color:#ef4444; opacity:0.4; cursor:default; }
+      .appt-grid .day.red:hover { background:transparent; }
+      .appt-slots { display:flex; gap:0.35rem; margin-top:0.5rem; flex-wrap:wrap; }
+      .appt-slots button { flex:1; min-width:5rem; padding:0.4rem 0.2rem; border:1px solid var(--border); border-radius:0.35rem; background:#fff; font-size:0.75rem; cursor:pointer; }
+      .appt-slots button:hover { border-color:var(--accent); }
+      .appt-slots button.selected { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+      #appt-summary { margin-top:0.4rem; font-size:0.8rem; color:var(--teal); min-height:1.2rem; }
+      #appt-toggle { margin-top:0.3rem; }
     </style>
   </head>
   <body>
@@ -626,21 +650,26 @@
         }) + ' ET';
         const fullAddress = `${lead.address}, ${lead.city}, ${lead.state} ${lead.zip}`;
 
-        let msg = `🏠 New Roof Inspection Request\n📋 PO#: ${poStr}\n${sep}\n👷 Worker: ${lead.worker || 'N/A'}\n👤 Name: ${lead.name}\n📞 Phone: ${lead.phone.replace(/\\D/g, '')}\n📧 Email: ${lead.email || 'N/A'}\n📍 Address: ${fullAddress}\n`;
+        let msg = `New Roof Inspection Request\n📋 PO#: ${poStr}\n${sep}\n👷 Worker: ${lead.worker || 'N/A'}\n👤 Name: ${lead.name}\n📞 Phone: ${lead.phone}\n📧 Email: ${lead.email || 'N/A'}\n📍 Address: ${fullAddress}\n`;
         if (lead.roofType) msg += `🏗️ Roof Type: ${lead.roofType}\n`;
         if (lead.urgency) msg += `⏰ Urgency: ${lead.urgency}\n`;
         if (lead.source) msg += `📎 Source: ${lead.source}\n`;
+        if (lead.appointment && lead.appointment.date) {
+          const ad = new Date(lead.appointment.date);
+          const adStr = ad.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          msg += `📅 Appointment: ${adStr} · ${lead.appointment.slot}\n`;
+        }
         msg += `💬 Message: ${lead.notes || 'N/A'}\n${sep}\n🕐 ${dt}`;
 
         if (includeQuote && lead.quote) {
           const q = lead.quote;
           const originalTotal = roundCurrency(q.sqft * q.rate);
           const discountAmount = roundCurrency(originalTotal - q.total);
-          msg += `\n\n💰 Quote Details\n━━━━━━━━━━━━━━━━━━━━━\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft\nOriginal Price: $${Number(originalTotal).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+          msg += `\n\n💰 Quote Details\n${sep}\nRoof Size: ${q.sqft} sq ft\nRate: $${q.rate}/sq ft\nOriginal Price: $${Number(originalTotal).toLocaleString('en-US', {minimumFractionDigits:2})}`;
           if (q.discount) {
             msg += `\nDiscount: ${Math.round(q.discount * 100)}% off (-$${Number(discountAmount).toLocaleString('en-US', {minimumFractionDigits:2})})`;
           }
-          msg += `\n━━━━━━━━━━━━━━━━━━━━━\nFinal Price: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
+          msg += `\n${sep}\nFinal Price: $${Number(q.total).toLocaleString('en-US', {minimumFractionDigits:2})}`;
         }
         return msg;
       }
@@ -800,6 +829,11 @@
           source: f.source.value,
           roofType: f.roofType.value,
           urgency: f.urgency.value,
+          appointment: apptState.date && apptState.slot ? (() => {
+            const dateStr = apptState.date.toISOString().slice(0,10);
+            bookAppointment(dateStr, apptState.slot);
+            return { date: dateStr, slot: apptState.slot };
+          })() : null,
           sqft: '',
           quote: null,
           status: 'New',
@@ -810,11 +844,120 @@
         saveLeads(leads);
         formDirty = false;
 
+        // No Telegram here — quote must be calculated first
         renderSuccess(lead);
         showPage('success');
         f.reset();
+        apptState = { date: null, slot: null, month: new Date() };
+        const apptEl = document.getElementById('appt-picker');
+        const apptBtn = document.getElementById('appt-toggle');
+        if (apptEl) apptEl.style.display = 'none';
+        if (apptBtn) { apptBtn.textContent = '📅 Pick Date'; apptBtn.className = 'btn btn-secondary'; }
       }
 
+
+      // ===========================================================
+      // APPOINTMENT PICKER
+      // ===========================================================
+      let apptState = { date: null, slot: null, month: new Date() };
+
+      function toggleApptPicker() {
+        const el = document.getElementById('appt-picker');
+        if (!el) return;
+        const show = el.style.display !== 'block';
+        el.style.display = show ? 'block' : 'none';
+        if (show) renderApptCal();
+      }
+      function getBookings() {
+        return JSON.parse(localStorage.getItem('SQR_BOOKINGS') || '{}');
+      }
+      function getDateAvailability(dateStr) {
+        const b = getBookings()[dateStr] || { '9-11am':0, '11am-2pm':0, '2-5pm':0 };
+        const booked = Object.values(b).reduce((a,v)=>a+v,0);
+        if (booked >= 3) return 'red';
+        if (booked >= 2) return 'yellow';
+        return 'green';
+      }
+      function bookAppointment(dateStr, slot) {
+        const bookings = getBookings();
+        if (!bookings[dateStr]) bookings[dateStr] = { '9-11am':0, '11am-2pm':0, '2-5pm':0 };
+        bookings[dateStr][slot] = (bookings[dateStr][slot] || 0) + 1;
+        localStorage.setItem('SQR_BOOKINGS', JSON.stringify(bookings));
+      }
+      function renderApptCal() {
+        const grid = document.getElementById('appt-grid');
+        const lbl = document.getElementById('appt-month');
+        if (!grid || !lbl) return;
+        const m = apptState.month;
+        const y = m.getFullYear();
+        const mo = m.getMonth();
+        lbl.textContent = m.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+        const first = new Date(y, mo, 1);
+        const last = new Date(y, mo + 1, 0);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const dow = first.getDay();
+        let html = '<div class="day-label">Su</div><div class="day-label">Mo</div><div class="day-label">Tu</div><div class="day-label">We</div><div class="day-label">Th</div><div class="day-label">Fr</div><div class="day-label">Sa</div>';
+        for (let i = 0; i < dow; i++) html += '<div class="day"></div>';
+        for (let d = 1; d <= last.getDate(); d++) {
+          const cd = new Date(y, mo, d);
+          const isPast = cd < today;
+          const isSunday = cd.getDay() === 0;
+          const sel = apptState.date && cd.toDateString() === apptState.date.toDateString();
+          let cls = 'day';
+          if (isPast || isSunday) cls += ' past';
+          if (isSunday) cls += ' sunday';
+          if (sel) cls += ' selected';
+          if (isPast || isSunday) {
+            html += `<div class="${cls}">${d}</div>`;
+          } else {
+            const dateStr = `${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const av = getDateAvailability(dateStr);
+            if (av === 'red') {
+              cls += ' red';
+              html += `<div class="${cls}">${d}</div>`;
+            } else {
+              cls += ' ' + av;
+              html += `<div class="${cls}" onclick="apptPickDate(${y},${mo},${d})">${d}</div>`;
+            }
+          }
+        }
+        grid.innerHTML = html;
+      }
+      function apptCalPrev() {
+        apptState.month = new Date(apptState.month.getFullYear(), apptState.month.getMonth() - 1, 1);
+        renderApptCal();
+      }
+      function apptCalNext() {
+        apptState.month = new Date(apptState.month.getFullYear(), apptState.month.getMonth() + 1, 1);
+        renderApptCal();
+      }
+      function apptPickDate(y, m, d) {
+        apptState.date = new Date(y, m, d);
+        renderApptCal();
+        updateApptSummary();
+      }
+      function pickSlot(btn) {
+        const slots = document.getElementById('appt-slots');
+        if (!slots) return;
+        for (const b of slots.querySelectorAll('button')) b.classList.remove('selected');
+        btn.classList.add('selected');
+        const val = btn.textContent;
+        if (val.includes('9:00')) apptState.slot = '9-11am';
+        else if (val.includes('11:00')) apptState.slot = '11am-2pm';
+        else if (val.includes('2:00')) apptState.slot = '2-5pm';
+        else apptState.slot = val;
+        updateApptSummary();
+      }
+      function updateApptSummary() {
+        const el = document.getElementById('appt-summary');
+        if (!el) return;
+        if (apptState.date && apptState.slot) {
+          const d = apptState.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          el.textContent = `${d} · ${apptState.slot}`;
+        } else {
+          el.textContent = '';
+        }
+      }
       function renderSuccess(lead) {
         document.getElementById('succ-name').textContent = lead.name;
       }
@@ -1163,8 +1306,25 @@
                       </select>
                     </div>
                   </div>
-                  <div class="form-row">
-                    <div class="form-group"><label for="lead-source">Lead Source</label>
+                  <div class="form-group" style="text-align:left;">
+                    <label>Book Appointment</label>
+                    <button type="button" id="appt-toggle" class="btn btn-secondary" onclick="toggleApptPicker()">📅 Pick Date</button>
+                    <div id="appt-picker">
+                        <div class="appt-header">
+                          <button type="button" onclick="apptCalPrev()">◀</button>
+                          <span class="appt-month" id="appt-month">May 2026</span>
+                          <button type="button" onclick="apptCalNext()">▶</button>
+                        </div>
+                        <div class="appt-grid" id="appt-grid"></div>
+                        <div class="appt-slots" id="appt-slots">
+                          <button type="button" onclick="pickSlot(this)">9:00 AM – 11:00 AM</button>
+                          <button type="button" onclick="pickSlot(this)">11:00 AM – 2:00 PM</button>
+                          <button type="button" onclick="pickSlot(this)">2:00 PM – 5:00 PM</button>
+                        </div>
+                        <div id="appt-summary"></div>
+                      </div>
+                  </div>
+                  <div class="form-group"><label for="lead-source">Lead Source</label>
                       <select id="lead-source" name="source">
                         <option value="Home Show">Home Show</option>
                         <option value="Facebook">Facebook</option>
@@ -1174,7 +1334,6 @@
                         <option value="Other">Other</option>
                       </select>
                     </div>
-                  </div>
                   <div class="form-group"><label for="lead-notes">Note</label><textarea id="lead-notes" name="notes" placeholder="Any details about the roof..."></textarea></div>
                   <button type="submit" class="btn btn-primary btn-lg">💾 Save Lead</button>
                 </div>
