@@ -655,9 +655,8 @@
         if (lead.urgency) msg += `⏰ Urgency: ${lead.urgency}\n`;
         if (lead.source) msg += `📎 Source: ${lead.source}\n`;
         if (lead.appointment && lead.appointment.date) {
-          const ad = new Date(lead.appointment.date);
-          const adStr = ad.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-          msg += `📅 Appointment: ${adStr} · ${lead.appointment.slot}\n`;
+          const ad = new Date(lead.appointment.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          msg += `📅 Appointment: ${ad} · ${lead.appointment.slot}\n`;
         }
         msg += `💬 Message: ${lead.notes || 'N/A'}\n${sep}\n🕐 ${dt}`;
 
