@@ -641,6 +641,19 @@
         }
       }
 
+      function buildGcalLink(dateStr, slot, name, address, city, state, zip) {
+        if (!dateStr || !slot) return '';
+        const y = dateStr.slice(0,4), m = dateStr.slice(5,7), d = dateStr.slice(8,10);
+        let startH = '09', startM = '00', endH = '11', endM = '00';
+        if (slot.includes('11am')) { startH = '11'; startM = '00'; endH = '14'; endM = '00'; }
+        else if (slot.includes('2-5')) { startH = '14'; startM = '00'; endH = '17'; endM = '00'; }
+        const start = `${y}${m}${d}T${startH}${startM}00`;
+        const end   = `${y}${m}${d}T${endH}${endM}00`;
+        const details = encodeURIComponent(`Roof inspection for ${name}\nAddress: ${address}, ${city}, ${state} ${zip}`);
+        const title = encodeURIComponent(`SQR Roof Inspection — ${name}`);
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${start}/${end}&details=${details}`;
+      }
+
       function buildTelegramMessage(lead, includeQuote) {
         const sep = '━'.repeat(21);
         const poStr = lead.poNumber ? String(lead.poNumber).padStart(5, '0') : '00000';
@@ -657,6 +670,8 @@
         if (lead.appointment && lead.appointment.date) {
           const ad = new Date(lead.appointment.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
           msg += `📅 Appointment: ${ad} · ${lead.appointment.slot}\n`;
+          const gcal = buildGcalLink(lead.appointment.date, lead.appointment.slot, lead.name, lead.address, lead.city, lead.state, lead.zip);
+          if (gcal) msg += `<a href="${gcal}">📆 Add to Google Calendar</a>\n`;
         }
         msg += `💬 Message: ${lead.notes || 'N/A'}\n${sep}\n🕐 ${dt}`;
 
